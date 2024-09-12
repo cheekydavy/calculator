@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        .calculator {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: right;
+            font-size: 1.5em;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            padding: 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #result {
+            margin-top: 10px;
+            font-size: 1.2em;
+            height: 30px;
+        }
+
+        .submenu {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .submenu button {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        .submenu-toggle {
+            grid-column: span 4;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <input type="text" id="input" placeholder="0" disabled />
+        <div class="buttons">
+            <button onclick="appendToInput('7')">7</button>
+            <button onclick="appendToInput('8')">8</button>
+            <button onclick="appendToInput('9')">9</button>
+            <button onclick="appendToInput('/')">/</button>
+
+            <button onclick="appendToInput('4')">4</button>
+            <button onclick="appendToInput('5')">5</button>
+            <button onclick="appendToInput('6')">6</button>
+            <button onclick="appendToInput('*')">*</button>
+
+            <button onclick="appendToInput('1')">1</button>
+            <button onclick="appendToInput('2')">2</button>
+            <button onclick="appendToInput('3')">3</button>
+            <button onclick="appendToInput('-')">-</button>
+
+            <button onclick="appendToInput('0')">0</button>
+            <button onclick="appendToInput('.')">.</button>
+            <button onclick="calculate()">=</button>
+            <button onclick="appendToInput('+')">+</button>
+
+            <button onclick="appendToInput('log(')">log</button>
+            <button onclick="appendToInput('sin(')">sin</button>
+            <button onclick="appendToInput('cos(')">cos</button>
+            <button onclick="appendToInput('tan(')">tan</button>
+
+            <button onclick="deleteLastCharacter()">C</button>
+            <button onclick="appendToInput('(')">(</button>
+            <button onclick="appendToInput(')')">)</button>
+            <button class="submenu-toggle" onclick="toggleSubmenu()">Special Functions</button>
+        </div>
+        
+        <div class="submenu" id="submenu">
+            <button onclick="appendToInput('Math.sqrt(')">√ (Square Root)</button>
+            <button onclick="appendToInput('Math.pow(')">x² (Square)</button>
+            <button onclick="appendToInput('Math.pow(')">x^ (Raise to Power)</button>
+            <button onclick="appendToInput('Math.cbrt(')">∛ (Cube Root)</button>
+            <button onclick="appendToInput('Math.pow(')">x³ (Cube)</button>
+            <button onclick="appendToInput('1/Math.sin(')">csc (Reciprocal Sin)</button>
+            <button onclick="appendToInput('1/Math.cos(')">sec (Reciprocal Cos)</button>
+            <button onclick="appendToInput('1/Math.tan(')">cot (Reciprocal Tan)</button>
+            <button onclick="matrixOperation()">Matrix Operation</button>
+        </div>
+
+        <div id="result"></div>
+    </div>
+    <script>
+        function appendToInput(value) {
+            const inputField = document.getElementById('input');
+            if (inputField.value === "0" && value !== '.') {
+                inputField.value = value;
+            } else {
+                inputField.value += value;
+            }
+        }
+
+        function calculate() {
+            const input = document.getElementById('input').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!validateInput(input)) {
+                resultDiv.textContent = 'Invalid input.';
+                return;
+            }
+
+            try {
+                const result = evalExpression(input);
+                resultDiv.textContent = `Result: ${result}`;
+            } catch (error) {
+                resultDiv.textContent = 'Error in calculation.';
+            }
+        }
+
+        function validateInput(input) {
+            const regex = /^[0-9+\-*/().\s]*|log\([0-9+\-*/().\s]*|sin\([0-9+\-*/().\s]*|cos\([0-9+\-*/().\s]*|tan\([0-9+\-*/().\s]*$/;
+            return regex.test(input);
+        }
+
+        function evalExpression(input) {
+            input = input.replace(/log/g, 'Math.log10')
+                         .replace(/sin/g, 'Math.sin')
+                         .replace(/cos/g, 'Math.cos')
+                         .replace(/tan/g, 'Math.tan');
+
+            return eval(input);
+        }
+
+        function deleteLastCharacter() {
+            const inputField = document.getElementById('input');
+            inputField.value = inputField.value.slice(0, -1) || '0';
+        }
+
+        function toggleSubmenu() {
+            const submenu = document.getElementById('submenu');
+            submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function matrixOperation() {
+            const matrixInput = prompt("Enter a 2x2 or 3x3 matrix separated by commas (e.g., '1,2,3,4' for 2x2 or '1,2,3,4,5,6,7,8,9' for 3x3):");
+            const matrix = matrixInput.split(',').map(Number);
+            const size = Math.sqrt(matrix.length);
+
+            if (size === 2 || size === 3) {
+                const result = calculateMatrixDeterminant(matrix, size);
+                alert(`The determinant of the matrix is: ${result}`);
+            } else {
+                alert("Invalid matrix size. Please enter a 2x2 or 3x3 matrix.");
+            }
+        }
+
+        function calculateMatrixDeterminant(matrix, size) {
+            if (size === 2) {
+                return matrix[0] * matrix[3] - matrix[1] * matrix[2];
+            } else if (size === 3) {
+                return matrix[0] * (matrix[4] * matrix[8] - matrix[5] * matrix[7])
+                     - matrix[1] * (matrix[3] * matrix[8] - matrix[5] * matrix[6])
+                     + matrix[2] * (matrix[3] * matrix[7] - matrix[4] * matrix[6]);
+            }
+        }
+    </script>
+</body>
+</html>
